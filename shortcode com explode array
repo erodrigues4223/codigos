@@ -1,0 +1,22 @@
+function card_solucao_shortcode( $atts ) {
+    $atts = shortcode_atts( array(
+        'dados' => ''
+    ), $atts, 'card_solucao' );
+    
+    $dados = $atts['dados'];
+	
+$slides = explode(';', $dados);
+
+
+foreach ($slides as $key => $value) {
+	if (!empty(strip_tags($value))){
+    _e ($value . 'ff<br>');
+	}
+}
+
+
+
+
+}
+
+add_shortcode( 'card_solucao', 'card_solucao_shortcode' );
