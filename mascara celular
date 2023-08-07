@@ -1,0 +1,66 @@
+<script>
+ function apagarUltimoDigito() {
+      const inputElement = document.getElementById("form-field-celular");
+      let valor = inputElement.value;
+      valor = valor.slice(0, -1); // Remove o último caractere
+      inputElement.value = valor;
+    }
+    function inputChangeHandler(event) {
+	
+      const inputElement = event.target;
+      let valorDigitado = inputElement.value;
+	  //console.log(valorDigitado.length);
+if (valorDigitado.length != 16) {
+      // Remover caracteres não numéricos
+      valorDigitado = valorDigitado.replace(/\D/g, '');
+
+      // Definir a máscara
+      let mascara = '(##) ####-####';
+      if (valorDigitado.length <= 1) {
+        mascara = '(#';
+      } else if (valorDigitado.length <= 2) {
+        mascara = '(##';
+      } else if (valorDigitado.length <= 3) {
+        mascara = '(##) #';
+      } else if (valorDigitado.length <= 4) {
+        mascara = '(##) ##';
+      } else if (valorDigitado.length <= 5) {
+        mascara = '(##) ###';
+      } else if (valorDigitado.length <= 6) {
+        mascara = '(##) ####';
+      } else if (valorDigitado.length <= 7) {
+        mascara = '(##) ####-#';
+      } else if (valorDigitado.length <= 8) {
+        mascara = '(##) ####-##';
+      } else if (valorDigitado.length <= 9) {
+        mascara = '(##) ####-###';
+      } else if (valorDigitado.length <= 10) {
+        mascara = '(##) ####-####';
+      } else if (valorDigitado.length <= 11) {
+        mascara = '(##) #####-####';
+      }
+
+      // Aplicar a máscara
+      let valorMascarado = '';
+      let posicao = 0;
+      for (let i = 0; i < mascara.length; i++) {
+        if (mascara[i] === '#') {
+          if (posicao < valorDigitado.length) {
+            valorMascarado += valorDigitado[posicao];
+            posicao++;
+          } else {
+            valorMascarado += '_';
+          }
+        } else {
+          valorMascarado += mascara[i];
+        }
+      }
+
+      // Definir o valor formatado no input
+      inputElement.value = valorMascarado;
+    }
+	else {apagarUltimoDigito()}}
+
+    const inputElement = document.getElementById("form-field-celular");
+    inputElement.addEventListener("input", inputChangeHandler);
+  </script>
