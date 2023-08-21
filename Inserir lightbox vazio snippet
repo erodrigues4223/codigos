@@ -51,12 +51,44 @@
  
    const closeButton = document.getElementById('closeButton');
 
- function openLightbox() {
+function popularLightbox(link) {
+  
+  // Limpa o conteúdo atual da div lightbox
+  lightbox.innerHTML = '';
+
+  // Cria um elemento de vídeo
+  const videoElement1 = document.createElement('video');
+  videoElement1.controls = true;
+
+  // Cria um elemento source e define seus atributos
+  const sourceElement1 = document.createElement('source');
+  sourceElement1.src = link;
+  sourceElement1.type = 'video/mp4';
+
+  // Adiciona um fallback para navegadores que não suportam vídeo
+  const fallbackText1 = document.createTextNode('Seu navegador não suporta o elemento de vídeo.');
+  
+  // Adiciona os elementos à div lightbox
+  videoElement1.appendChild(sourceElement1);
+  videoElement1.appendChild(fallbackText1);
+  lightbox.appendChild(videoElement1);
+
+  // Adiciona o botão de fechar à div lightbox
+  const closeButton1 = document.createElement('span');
+  closeButton1.className = 'close-button';
+  closeButton1.id = 'closeButton';
+  closeButton1.innerHTML = '&times;';
+  lightbox.appendChild(closeButton1);
+}
+
+
+ function openLightbox(url) {
  
     lightbox.style.display = 'block'; // Mostrar o elemento
     setTimeout(function() {
       lightbox.classList.add('open'); // Adicionar a classe para alterar a opacidade
     }, 10); // Pequeno atraso para garantir que a exibição ocorra antes da adição da classe
+    popularLightbox(url);
   }
 
  function closeLightbox() {
@@ -79,4 +111,16 @@
   lightbox.addEventListener('click', (event) => {
     closeLightbox();
   });
+  
+  
+  
+
+
+  
+  
+  
+  
+  
+  
+  
 </script>
