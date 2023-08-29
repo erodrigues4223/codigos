@@ -1,0 +1,176 @@
+<?php
+
+/**
+ * Plugin Name: Shortcodes
+ * Description: Shortcodes para listagem.
+ * Version: 1.0.9
+ * Author: Liga Facens
+ */
+
+function ordenar_meses($a, $b)
+{
+    $ordem_meses = array(
+        'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+        'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    );
+
+    if (array_search($a, $ordem_meses) > array_search($b, $ordem_meses)) {
+        return 1;
+    } elseif (array_search($a, $ordem_meses) < array_search($b, $ordem_meses)) {
+        return -1;
+    }
+    return 0;
+}
+
+function get_datas_comemorativas()
+{
+    $args = array(
+        'post_type' => 'datas_comemorativas',
+        'posts_per_page' => -1,
+    );
+
+    $query = new WP_Query($args);
+    $posts = array();
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+
+            $dia = intval(get_field('dia'));
+            $descricao = get_field('descricao');
+            $cor_do_campo = get_field('cor_do_campo');
+
+            $termos = wp_get_post_terms(get_the_ID(), 'categoria_datas_comemorativas');
+            if (!empty($termos) && !is_wp_error($termos)) {
+                $mes = $termos[0]->name;
+
+                if (!isset($posts[$mes])) {
+                    $posts[$mes] = array();
+                }
+
+                $posts[$mes][] = array(
+                    'dia' => $dia,
+                    'descricao' => $descricao,
+                    'cor_do_campo' => $cor_do_campo,
+                );
+            }
+        }
+    }
+    wp_reset_postdata();
+
+    uksort($posts, 'ordenar_meses');
+
+    // Inverte a ordem dos meses
+    $posts = array_reverse($posts, true);
+
+    foreach ($posts as $mes => &$dias) {
+        // Ordena os dias
+        usort($dias, function ($a, $b) {
+            return $a['dia'] - $b['dia'];
+        });
+    }
+
+    return $posts;
+}
+
+
+function datas_comemorativas_shortcode()
+{
+    $data = get_datas_comemorativas();
+
+    ob_start();
+    include plugin_dir_path(__FILE__) . 'template.php';
+    return ob_get_clean();
+}
+
+add_shortcode('datas_comemorativas', 'datas_comemorativas_shortcode');
+
+function add_swiper_styles_scripts()
+{
+    wp_enqueue_style('swiper-styles', 'https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css');
+    wp_enqueue_script('swiper-script', 'https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js', array(), '', true);
+}
+
+add_action('wp_enqueue_scripts', 'add_swiper_styles_scripts');
+
+function arquivos_shortcode($atts)
+{
+    $atts = shortcode_atts(
+        array(
+            'categoria' => '',
+        ),
+        $atts,
+        'arquivos'
+    );
+
+    $output = '';
+    $ano_anterior = null;
+
+    $args = array(
+        'post_type' => 'arquivos',
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'arquivo_categoria',
+                'field'    => 'slug',
+                'terms'    => esc_attr($atts['categoria']),
+            ),
+        ),
+        'posts_per_page' => -1, // Consider adding a limit or pagination.
+        'orderby' => 'meta_value_num',
+        'meta_key' => 'ano',
+        'order' => 'DESC'
+    );
+
+    $query = new WP_Query($args);
+
+    if ($query->have_posts()) {
+        $output .= '<div class="lista-arquivos">';
+
+        while ($query->have_posts()) {
+            $query->the_post();
+
+            if(!empty(get_field('ano'))){
+                $ano = get_field('ano');
+            }else{
+                $ano = '0';
+            }
+
+            if ($ano != $ano_anterior) {
+                if ($ano_anterior !== null) {
+                    $output .= '</div></div>';
+                }
+
+                $output .= '<div class="arquivo-item">';
+                $output .= '<div class="arquivo-data">' . esc_html($ano) . '</div>';
+                $output .= '<div class="arquivo-group">';
+                $ano_anterior = $ano;
+            }
+
+            $titulo = get_the_title();
+            $tipo_de_arquivo = get_field('tipo_de_arquivo')[0];
+            $arquivo = get_field('arquivo');
+
+            $output .= '<div class="arquivo-conteudo">';
+            $output .= '<div class="arquivo-info">';
+            $output .= '<strong>' . esc_html($titulo) . '</strong>';
+            $output .= '<span>' . esc_html($tipo_de_arquivo) . '</span>';
+            $output .= '</div>';
+            $output .= '<div class="arquivo-link"><a href="' . esc_url($arquivo) . '" target="_blank"><img src="/wp-content/uploads/2023/08/icon-download.png" alt="Download Icon" /></a></div>';
+            $output .= '</div>'; 
+
+            if ($query->current_post + 1 == $query->post_count) {
+                $output .= '</div></div>';
+            }
+        }
+
+        $output .= '</div>';
+    } else {
+        $output = 'Nenhum arquivo encontrado para a categoria especificada.';
+    }
+
+    wp_reset_postdata();
+
+    return $output;
+}
+
+add_shortcode('arquivos', 'arquivos_shortcode');
